@@ -119,13 +119,15 @@ pub fn parse_source(input: KconfigInput) -> IResult<KconfigInput, Source> {
     }
 }
 
+static VARS_RE: std::sync::LazyLock<Regex> =
+    std::sync::LazyLock::new(|| Regex::new(r"\$\((\S+)\)").unwrap());
+
 pub fn apply_vars(
     file: &str,
     extra_vars: &std::collections::HashMap<String, String>,
 ) -> Option<String> {
-    let re = Regex::new(r"\$\((\S+)\)").unwrap();
     let mut file_copy = String::from(file);
-    for (var_name, var_value) in re.captures_iter(file).map(|cap| {
+    for (var_name, var_value) in VARS_RE.captures_iter(file).map(|cap| {
         let ex: (&str, [&str; 1]) = cap.extract();
         let var = ex.1[0];
         (var, extra_vars.get(var))
