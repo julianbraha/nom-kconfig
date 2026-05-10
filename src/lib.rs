@@ -84,10 +84,7 @@ impl KconfigFile {
     }
 
     pub fn full_path(&self) -> PathBuf {
-        match self.file.is_absolute() {
-            true => self.file.clone(),
-            false => self.root_dir.join(&self.file),
-        }
+        self.root_dir.join(&self.file)
     }
 
     pub fn read_to_string(&self) -> io::Result<String> {
