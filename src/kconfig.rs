@@ -1,5 +1,5 @@
 use nom::{
-    combinator::{eof, map},
+    combinator::eof,
     multi::many0,
     sequence::delimited,
     IResult, Parser,
@@ -39,14 +39,8 @@ pub struct Kconfig {
 /// assert_eq!(parse_kconfig(input).unwrap().1, Kconfig {file: "Kconfig".to_string(), entries: vec!() })
 /// ```
 pub fn parse_kconfig(input: KconfigInput) -> IResult<KconfigInput, Kconfig> {
-    let file: std::path::PathBuf = input.extra.file.clone();
-    debug!("Parsing file '{}'", file.display());
-    let (input, result) = map(delimited(ws_comment, many0(parse_entry), ws(eof)), |d| {
-        Kconfig {
-            file: file.display().to_string(),
-            entries: d,
-        }
-    })
-    .parse(input)?;
-    Ok((input, result))
+    let file = input.extra.file.display().to_string();
+    debug!("Parsing file '{}'", file);
+    let (input, entries) = delimited(ws_comment, many0(parse_entry), ws(eof)).parse(input)?;
+    Ok((input, Kconfig { file, entries }))
 }
