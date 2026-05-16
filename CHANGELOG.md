@@ -1,4 +1,193 @@
 ## What's Changed in 0.11.0
+* chore: Update changelog by @github-actions[bot]
+* chore: Release version v0.11.0 by @Mcdostone
+* feat: support for the kconfiglib by @Mcdostone
+* add debug feature: enables tracing by @julianbraha
+* ci: trying to secure CI by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* build(deps): bump rust-lang/crates-io-auth-action from 1.0.3 to 1.0.4 by @dependabot[bot]
+* build(deps): bump codecov/codecov-action from 5.5.4 to 6.0.0 by @dependabot[bot]
+* build(deps): bump bnjbvr/cargo-machete by @dependabot[bot]
+* chore: Release version v0.10.0 by @Mcdostone
+* test: new integration test for linux-next by @Mcdostone
+* build: update deps by @Mcdostone
+* fix: move some specific coreboot feature to the core library regarding compare.rs by @Mcdostone
+* ci: remove useless packages installation by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* chore: Release version v0.9.0 by @Mcdostone
+* refactor: breaking change in the way I deal with constant symbols and non constant symbols by @Mcdostone
+* fix: allow hyphens in non constant symbols by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* chore: Release version v0.8.0 by @Mcdostone
+* ci: trying to improve security of the CI pipeline by @Mcdostone
+* feat: support of coreboot syntax with a rust feature 'coreboot' by @Mcdostone
+* refactor: allow to specify the root dir in `parse_file.rs` by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* chore: Release version v0.7.0 by @Mcdostone
+* fix: strings are delimited by single or double quotes by @Mcdostone
+* test: fix doc-tests by @Mcdostone
+* build(deps): bump raven-actions/actionlint from 2.1.0 to 2.1.1 by @dependabot[bot]
+* chore: Update changelog by @github-actions[bot]
+* build: update lockfile by @Mcdostone
+* chore: Release version v0.6.0 by @Mcdostone
+* fix: constant and non-constant symbols were wrong by @Mcdostone
+* build(deps): bump raven-actions/actionlint from 2.0.1 to 2.1.0 by @dependabot[bot]
+* ci: fix changelog.yml by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* chore: Release version v0.5.0 by @Mcdostone
+* build: update dependencies by @Mcdostone
+* feat: new attribute 'transitional' by @Mcdostone
+* fix: Parsing the help attribute is more complex that I thought #101 by @Mcdostone
+* update GA checkout by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* chore: Release by @Mcdostone
+* build: update dependencies by @Mcdostone
+* build(deps): bump criterion from 0.5.1 to 0.7.0 by @dependabot[bot]
+* build(deps): bump afl from 0.15.17 to 0.15.20 by @dependabot[bot]
+* build(deps): bump raven-actions/actionlint from 2.0.0 to 2.0.1 by @dependabot[bot]
+* build(deps): bump actions/checkout from 4 to 5 by @dependabot[bot]
+* docs: example of how to specify variables when parsing kconfig files by @Mcdostone
+* fix: typos in CHANGELOG.md by @Mcdostone
+* test: unit tests for `depends on` for menu, unit tests for `set_vars` method by @Mcdostone
+* chore: Update changelog by @github-actions[bot]
+* ci: fix GA workflow by @Mcdostone
+* chore: Release by @Mcdostone
+* ci: configure typos by @Mcdostone
+* fix: fix doctests by @Mcdostone
+* build: update dependencies by @Mcdostone
+* feat: format code, update GA workflows by @Mcdostone
+* feat: update `nom` by @Mcdostone
+* test: add another unit test for `parse_help` by @Mcdostone
+* trim newline around the parsed help text by @Vollbrecht
+* modify test to reflect multi newline possibility by @Vollbrecht
+* fix helptext parsing accross paragraph's by @Vollbrecht
+* ci: improve the CI by @Mcdostone
+* fix: change type of error when parsing `help` by @Mcdostone
+* fix: update dependencies by @Mcdostone
+* clippy by @Vollbrecht
+* rework help parsing by @Vollbrecht
+* Ability to specify variables that included sources file depend on
+* chore: Release by @Mcdostone
+* ci: fix CI by @Mcdostone
+* build: update regex crate by @Mcdostone
+* Bump codecov/codecov-action from 4 to 5 by @dependabot[bot]
+* fix: new case when parsing function by @Mcdostone
+* Bump serde from 1.0.207 to 1.0.208 by @dependabot[bot]
+* update README.md by @Mcdostone
+* Bump serde from 1.0.198 to 1.0.202 by @dependabot[bot]
+* Bump codecov/codecov-action from 3 to 4 by @dependabot[bot]
+* build: update dependencies by @Mcdostone
+* Bump serde from 1.0.195 to 1.0.198 by @dependabot[bot]
+* Bump regex from 1.10.2 to 1.10.4 by @dependabot[bot]
+* Bump walkdir from 2.4.0 to 2.5.0 by @dependabot[bot]
+* Bump afl from 0.15.1 to 0.15.4 by @dependabot[bot]
+* Bump afl from 0.14.3 to 0.15.1 by @dependabot[bot]
+* Bump serde from 1.0.189 to 1.0.195 by @dependabot[bot]
+* ci: Test the library with rust stable, nightly and msrv by @Mcdostone
+* ci: Update dependencies by @Mcdostone
+* Bump actions/checkout from 3 to 4 by @dependabot[bot]
+* ci: fix benchmark by @Mcdostone
+* ci: remove action-rs/toolchain by @Mcdostone
+* ci: add dependabot by @Mcdostone
+* refactor: Update dependencies, github workflow for benchmark by @Mcdostone
+* ci: github workflow for benchmark by @Mcdostone
+* refactor: Update dependencies, github workflow for benchmark by @Mcdostone
+* ci: github workflow for benchmark by @Mcdostone
+* ci: new CI workflow for auditing dependencies by @Mcdostone
+* chore: Release by @Boat
+* rename fields, do not support enable attribute by @Mcdostone
+* update ci by @Mcdostone
+* update README.md and github actions by @Mcdostone
+* update criterion by @Mcdostone
+* add License by @Mcdostone
+* update dependencies by @Mcdostone
+* update readme by @Mcdostone
+* prepare for release by @Mcdostone
+* fix choice by @Mcdostone
+* clippy by @Mcdostone
+* clippy by @Mcdostone
+* remove macros by @Mcdostone
+* trying to stabilize the API by @Mcdostone
+* more unit tests by @Mcdostone
+* attemps to improve code coverage by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* ok by @Mcdostone
+* update by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update by @Mcdostone
+* update README.md by @Mcdostone
+* update README.md by @Mcdostone
+* update README.md by @Mcdostone
+* update README.md by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* update README.md by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* ok by @Mcdostone
+* update README.md by @Mcdostone
+* first commit by @Mcdostone
+
+### New Contributors
+* @github-actions[bot] made their first contribution
+* @Mcdostone made their first contribution
+* @julianbraha made their first contribution
+* @dependabot[bot] made their first contribution
+* @Vollbrecht made their first contribution
+* @ made their first contribution
+* @Boat made their first contribution
+
+## What's Changed in 0.11.0
 * chore: Release version v0.11.0 by @Mcdostone
 * feat: support for the kconfiglib by @Mcdostone
 * add debug feature: enables tracing by @julianbraha
