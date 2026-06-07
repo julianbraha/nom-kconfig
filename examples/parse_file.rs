@@ -4,6 +4,14 @@ use clap::Parser;
 use nom_kconfig::{parse_kconfig, KconfigFile, KconfigInput};
 use tracing::{error, Level};
 
+#[derive(clap::ValueEnum, Clone, Default)]
+enum Format {
+    #[default]
+    Debug,
+    Json,
+    Sexp,
+}
+
 #[derive(Parser)]
 #[command(author,
     bin_name = "parse_file",
@@ -20,6 +28,9 @@ struct Cli {
     /// A comma-separated list of variables: var_a=hello
     #[clap(long = "variables", use_value_delimiter = true, value_delimiter = ',')]
     pub variables: Vec<String>,
+    /// Output format for the parse tree
+    #[clap(long, default_value = "debug")]
+    format: Format,
 }
 
 /// to use this example, run
@@ -69,7 +80,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Err(e) = parsing_result {
         panic!("{}", e);
     }
-    println!("Parsed: {:#?}", parsing_result.unwrap().1);
+    let kconfig = parsing_result.unwrap().1;
+    match cli.format {
+        Format::Debug => println!("{:#?}", kconfig),
+        Format::Json => println!("{}", serde_json::to_string_pretty(&kconfig)?),
+        Format::Sexp => println!("{}", json_to_sexp(&serde_json::to_value(&kconfig)?)),
+    }
 
     Ok(())
+}
+
+fn json_to_sexp(v: &serde_json::Value) -> String {
+    match v {
+        serde_json::Value::Null => "()".to_string(),
+        serde_json::Value::Bool(b) => if *b { "true" } else { "false" }.to_string(),
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::String(s) => format!("{:?}", s),
+        serde_json::Value::Array(arr) => {
+            let items: Vec<String> = arr.iter().map(json_to_sexp).collect();
+            format!("({})", items.join(" "))
+        }
+        serde_json::Value::Object(obj) => {
+            let pairs: Vec<String> = obj
+                .iter()
+                .map(|(k, val)| format!("({} {})", k, json_to_sexp(val)))
+                .collect();
+            format!("({})", pairs.join(" "))
+        }
+    }
 }
