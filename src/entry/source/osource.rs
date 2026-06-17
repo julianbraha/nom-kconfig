@@ -17,7 +17,7 @@ pub type OSource = Source;
 
 pub fn parse_osource(input: KconfigInput) -> IResult<KconfigInput, OSource> {
     let (input, _) = ws(tag("osource")).parse(input)?;
-    let (mut input, file) = wsi(alt((
+    let (input, file) = wsi(alt((
         delimited(tag("\""), parse_filepath, tag("\"")),
         parse_filepath,
     )))
@@ -35,8 +35,7 @@ pub fn parse_osource(input: KconfigInput) -> IResult<KconfigInput, OSource> {
             });
             continue;
         }
-        let (variables, source) = parse_source_kconfig(input.clone(), source_kconfig_file)?;
-        input.extra.add_local_vars(variables);
+        let source = parse_source_kconfig(input.clone(), source_kconfig_file)?;
         sources.push(source);
     }
 
