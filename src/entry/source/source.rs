@@ -24,7 +24,7 @@ pub struct Source {
 
 pub fn parse_source(input: KconfigInput) -> IResult<KconfigInput, Source> {
     let (input, _) = ws(tag("source")).parse(input)?;
-    let (mut input, file) = wsi(alt((
+    let (input, file) = wsi(alt((
         delimited(tag("\""), parse_filepath, tag("\"")),
         parse_filepath,
     )))
@@ -37,8 +37,7 @@ pub fn parse_source(input: KconfigInput) -> IResult<KconfigInput, Source> {
 
         for expanded_file in expanded_files {
             let source_kconfig_file = input.extra.new_source_file(expanded_file);
-            let (variables, source) = parse_source_kconfig(input.clone(), source_kconfig_file)?;
-            input.extra.add_local_vars(variables);
+            let source = parse_source_kconfig(input.clone(), source_kconfig_file)?;
             sources.push(source);
         }
 
@@ -50,8 +49,7 @@ pub fn parse_source(input: KconfigInput) -> IResult<KconfigInput, Source> {
         use std::path::PathBuf;
 
         let source_kconfig_file = input.extra.new_source_file(PathBuf::from(file));
-        let (variables, source) = parse_source_kconfig(input.clone(), source_kconfig_file)?;
-        input.extra.add_local_vars(variables);
+        let source = parse_source_kconfig(input.clone(), source_kconfig_file)?;
         return Ok((
             input,
             Source {

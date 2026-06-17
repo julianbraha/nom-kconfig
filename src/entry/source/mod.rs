@@ -30,7 +30,6 @@ use crate::{util::ws, Kconfig, KconfigFile};
 
 #[cfg(feature = "glob-wildcard")]
 pub use glob::glob;
-use std::collections::HashMap;
 #[cfg(feature = "glob-wildcard")]
 use std::path::PathBuf;
 
@@ -55,11 +54,10 @@ pub(crate) fn parse_filepath(input: KconfigInput<'_>) -> IResult<KconfigInput<'_
     .parse(input)
 }
 
-#[allow(clippy::type_complexity)]
 fn parse_source_kconfig(
     input: KconfigInput,
     source_kconfig_file: KconfigFile,
-) -> Result<(HashMap<String, String>, Kconfig), nom::Err<Error<KconfigInput>>> {
+) -> Result<Kconfig, nom::Err<Error<KconfigInput>>> {
     let source_content = source_kconfig_file
         .read_to_string()
         .map_err(|_| nom::Err::Error(Error::from_error_kind(input.clone(), ErrorKind::Fail)));
@@ -78,13 +76,10 @@ fn parse_source_kconfig(
                 source_kconfig_file.full_path().display(),
                 input.extra.full_path().display()
             );
-            return Ok((
-                input.extra.vars(),
-                Kconfig {
-                    file: source_kconfig_file.full_path().display().to_string(),
-                    entries: vec![],
-                },
-            ));
+            return Ok(Kconfig {
+                file: source_kconfig_file.full_path().display().to_string(),
+                entries: vec![],
+            });
         }
     }
 
@@ -95,13 +90,8 @@ fn parse_source_kconfig(
         &source_content,
         source_kconfig_file.clone(),
     )) {
-        Ok((d, kconfig)) => Ok(((*d.extra.local_vars).clone(), kconfig)),
+        Ok((_, kconfig)) => Ok(kconfig),
         Err(e) => {
-            //debug!("Variables are {:?}", input.extra.vars());
-            //error!(
-            //    "Failed to parse source file '{}'",
-            //    source_kconfig_file.full_path().display(),
-            //);
             match e {
                 nom::Err::Incomplete(needed) => {
                     return Err(nom::Err::Incomplete(needed));
