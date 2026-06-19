@@ -225,7 +225,7 @@ config AS_WRUSS
 fn test_set_envs() {
     let mut file = KconfigFile::new(PathBuf::from("."), PathBuf::from("Kconfig"));
     file.set_global_vars(&[("ARCH", "ARCH_64")]);
-    assert_eq!(file.global_vars.get("ARCH"), Some(&"ARCH_64".to_string()));
+    assert_eq!(file.vars.global().get("ARCH"), Some(&"ARCH_64".to_string()));
 }
 
 #[test]
