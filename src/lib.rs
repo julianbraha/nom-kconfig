@@ -40,7 +40,7 @@ pub use self::attribute::Attribute;
 pub use self::entry::Entry;
 pub use self::kconfig::{parse_kconfig, Kconfig};
 pub use self::symbol::Symbol;
-pub use kconfig_file::KconfigFile;
+pub use kconfig_file::{KconfigFile, VarTable};
 use nom_locate::LocatedSpan;
 
 /// [KconfigInput] is a struct gathering a [KconfigFile] and its associated content.

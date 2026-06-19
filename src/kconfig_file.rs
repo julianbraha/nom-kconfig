@@ -33,9 +33,55 @@ use std::rc::Rc;
 use std::{fs, io};
 
 /// Make-style preprocessor variables shared across all parser input clones.
-/// `Rc` allows cheap O(1) cloning (nom clones the input constantly for backtracking);
-/// `RefCell` allows in-place writes through a shared reference.
-pub type VarTable = Rc<RefCell<HashMap<String, String>>>;
+///
+/// `global` holds variables fixed at parse startup (e.g. `SRCARCH=x86`).
+/// `local` accumulates variable assignments encountered during parsing.
+/// Both fields are `Rc`-wrapped so cloning `VarTable` is O(1) — nom clones
+/// the parser input constantly for backtracking. `local` uses `RefCell` for
+/// in-place writes through a shared reference.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct VarTable {
+    global: Rc<HashMap<String, String>>,
+    local: Rc<RefCell<HashMap<String, String>>>,
+}
+
+impl VarTable {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_maps(global: HashMap<String, String>, local: HashMap<String, String>) -> Self {
+        Self {
+            global: Rc::new(global),
+            local: Rc::new(RefCell::new(local)),
+        }
+    }
+
+    /// Insert a variable into the live (local) table.
+    pub fn insert(&self, key: impl Into<String>, value: impl Into<String>) {
+        self.local.borrow_mut().insert(key.into(), value.into());
+    }
+
+    /// Extend the live (local) table with multiple variables.
+    pub fn extend(&self, vars: impl IntoIterator<Item = (String, String)>) {
+        self.local.borrow_mut().extend(vars);
+    }
+
+    /// Merged view of all variables; local values win over global on conflict.
+    pub fn all(&self) -> HashMap<String, String> {
+        let mut out = (*self.global).clone();
+        out.extend(self.local.borrow().clone());
+        out
+    }
+
+    pub fn global(&self) -> &HashMap<String, String> {
+        &self.global
+    }
+
+    pub fn set_global(&mut self, vars: HashMap<String, String>) {
+        self.global = Rc::new(vars);
+    }
+}
 
 /// Represents a Kconfig file.
 /// It stores the kernel root directory because we need this information when a [`source`](https://www.kernel.org/doc/html/next/kbuild/kconfig-language.html#kconfig-syntax) keyword is met.
@@ -45,9 +91,8 @@ pub struct KconfigFile {
     pub root_dir: PathBuf,
     /// The path the the Kconfig you want to parse.
     pub file: PathBuf,
-    /// Externally-specified variables to use when including child source files
-    pub global_vars: Rc<HashMap<String, String>>,
-    pub local_vars: VarTable,
+    /// All variables, both global (defined externally), and local.
+    pub vars: VarTable,
     pub external_functions: Rc<HashMap<String, String>>,
     pub depth: usize,
     pub parent_file: Option<PathBuf>,
@@ -58,8 +103,7 @@ impl KconfigFile {
         Self {
             root_dir,
             file,
-            global_vars: Rc::new(HashMap::new()),
-            local_vars: Rc::new(RefCell::new(HashMap::new())),
+            vars: VarTable::new(),
             external_functions: Rc::new(HashMap::new()),
             depth: 0,
             parent_file: None,
@@ -75,18 +119,16 @@ impl KconfigFile {
         Self {
             root_dir,
             file,
-            global_vars: Rc::new(
+            vars: VarTable::from_maps(
                 global_vars
                     .iter()
                     .map(|(s1, s2)| (s1.as_ref().to_string(), s2.as_ref().to_string()))
                     .collect(),
-            ),
-            local_vars: Rc::new(RefCell::new(
                 local_vars
                     .iter()
                     .map(|(s1, s2)| (s1.as_ref().to_string(), s2.as_ref().to_string()))
                     .collect(),
-            )),
+            ),
             external_functions: Rc::new(HashMap::new()),
             depth: 0,
             parent_file: None,
@@ -106,14 +148,12 @@ impl KconfigFile {
         copied
     }
 
-    pub fn vars(&self) -> HashMap<String, String> {
-        let mut variables = (*self.global_vars).clone();
-        variables.extend(self.local_vars.borrow().clone());
-        variables
-    }
-
-    pub fn global_vars(&self) -> &HashMap<String, String> {
-        &self.global_vars
+    pub fn set_global_vars<S: AsRef<str>>(&mut self, vars: &[(S, S)]) {
+        self.vars.set_global(
+            vars.iter()
+                .map(|(s1, s2)| (s1.as_ref().to_string(), s2.as_ref().to_string()))
+                .collect(),
+        );
     }
 
     pub fn full_path(&self) -> PathBuf {
@@ -124,26 +164,8 @@ impl KconfigFile {
         fs::read_to_string(self.full_path()).map(|content| self.preprocess_content(content))
     }
 
-    pub fn set_global_vars<S: AsRef<str>>(&mut self, vars: &[(S, S)]) {
-        self.global_vars = Rc::new(
-            vars.iter()
-                .map(|(s1, s2)| (s1.as_ref().to_string(), s2.as_ref().to_string()))
-                .collect(),
-        );
-    }
-
-    pub fn add_local_var<S: AsRef<str>>(&mut self, key: S, value: S) {
-        self.local_vars
-            .borrow_mut()
-            .insert(key.as_ref().to_string(), value.as_ref().to_string());
-    }
-
-    pub fn add_local_vars(&mut self, new_vars: HashMap<String, String>) {
-        self.local_vars.borrow_mut().extend(new_vars);
-    }
-
     pub fn preprocess_content(&self, content: String) -> String {
-        let variables = self.vars();
+        let variables = self.vars.all();
         if variables.is_empty() {
             return content;
         }

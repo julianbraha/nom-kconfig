@@ -105,7 +105,7 @@ pub fn parse_variable_identifier(input: KconfigInput) -> IResult<KconfigInput, V
 }
 
 pub fn parse_variable_assignment(input: KconfigInput) -> IResult<KconfigInput, VariableAssignment> {
-    let (mut remaining, assignment) = map(
+    let (remaining, assignment) = map(
         (
             ws(parse_variable_identifier),
             ws(parse_assign),
@@ -123,7 +123,8 @@ pub fn parse_variable_assignment(input: KconfigInput) -> IResult<KconfigInput, V
     // variables can be used by the preprocessor.
     remaining
         .extra
-        .add_local_var(assignment.identifier.raw(), assignment.right.raw());
+        .vars
+        .insert(assignment.identifier.raw(), assignment.right.raw());
     Ok((remaining, assignment))
 }
 
