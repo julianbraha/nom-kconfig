@@ -136,7 +136,21 @@ fn test_parse_string() {
         parse_string,
         r#""hello "world"
 ""#
-    )
+    );
+
+    // a string stops at its closing quote even when more strings follow on the line
+    assert_parsing_eq!(
+        parse_string,
+        r#""0" && PANEL_LCD="1""#,
+        Ok((r#" && PANEL_LCD="1""#, "0".to_string()))
+    );
+
+    // backslash-escaped quotes do not close the string
+    assert_parsing_eq!(
+        parse_string,
+        r#""hello \"world\"" if NET"#,
+        Ok((" if NET", r#"hello \"world\""#.to_string()))
+    );
 }
 
 #[test]

@@ -121,9 +121,26 @@ pub fn parse_variable_assignment(input: KconfigInput) -> IResult<KconfigInput, V
 
     // If the parsing is successful, we add the variable assignment to the local variables of the KconfigFile.
     // variables can be used by the preprocessor.
-    remaining
-        .extra
-        .add_local_var(assignment.identifier.raw(), assignment.right.raw());
+    //
+    // Only substitution-safe values participate: preprocess_content replaces
+    // `$(NAME)` textually before parsing, so a value containing delimiters,
+    // quotes, `$`, or whitespace-control characters — or an empty value —
+    // could change how the surrounding text parses. The kernel's
+    // scripts/Kconfig.include punctuation variables are the canonical hazard:
+    // substituting `comma := ,` into `$(as-instr64,wrussq %rax$(comma)(%rbx))`
+    // splits the argument, while real kconfig expands arguments only *after*
+    // splitting them. Unsafe values are left to a downstream evaluator (the
+    // reference stays a parsed Macro).
+    let value = assignment.right.raw();
+    let substitution_safe = !value.is_empty()
+        && !value
+            .chars()
+            .any(|c| ",()\"'$".contains(c) || c.is_whitespace() || c.is_control());
+    if substitution_safe {
+        remaining
+            .extra
+            .add_local_var(assignment.identifier.raw(), value);
+    }
     Ok((remaining, assignment))
 }
 

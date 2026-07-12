@@ -22,43 +22,59 @@ pub fn parse_string(input: KconfigInput) -> IResult<KconfigInput, String> {
     .parse(input)
 }
 
+/// Takes the content of a string whose opening `delimiter` has already been consumed.
+/// The string must close before the end of the line.
+///
+/// Kconfig files in the wild contain strings with unescaped nested quotes
+/// (e.g. `"hello "world"" if NET`), so the closing quote is not simply the next
+/// delimiter: it is the first delimiter that is followed by a character allowed
+/// after a string (whitespace, an operator, ...) and that leaves an even number of
+/// delimiters behind it on the line, so they can still pair up. When no delimiter
+/// qualifies, the string extends to the last delimiter on the line.
 pub fn take_until_unbalanced(
     delimiter: char,
 ) -> impl Fn(KconfigInput) -> IResult<KconfigInput, KconfigInput> {
     move |i: KconfigInput| {
-        let mut index: usize = 0;
-        let mut delimiter_counter = 0;
-
-        let end_of_line = match &i.find('\n') {
-            Some(e) => *e,
+        let end_of_line = match i.find('\n') {
+            Some(e) => e,
             None => i.len(),
         };
+        let line: &str = &i[..end_of_line];
 
-        while let Some(n) = &i[index..end_of_line].find(delimiter) {
-            delimiter_counter += 1;
-            index += n + 1;
-        }
-
-        // we split just before the last double quote
-        match index.checked_sub(1) {
-            Some(i) => index = i,
-            None => {
-                return Err(nom::Err::Error(Error::from_error_kind(
-                    i,
-                    ErrorKind::TakeUntil,
-                )))
+        // positions of the delimiters on the line, ignoring backslash-escaped ones
+        let mut positions = Vec::new();
+        let mut escaped = false;
+        for (index, c) in line.char_indices() {
+            if escaped {
+                escaped = false;
+            } else if c == '\\' {
+                escaped = true;
+            } else if c == delimiter {
+                positions.push(index);
             }
         }
-        // Last delimiter is the string delimiter
-        delimiter_counter -= 1;
 
-        match delimiter_counter % 2 == 0 {
-            true => Ok(i.take_split(index)),
-            false => Err(nom::Err::Error(Error::from_error_kind(
+        // together with the already consumed opening delimiter, the delimiters on
+        // the line must pair up, otherwise a quote is left unbalanced
+        if positions.len() % 2 == 0 {
+            return Err(nom::Err::Error(Error::from_error_kind(
                 i,
                 ErrorKind::TakeUntil,
-            ))),
+            )));
         }
+
+        let closes_string = |position: usize| match line[position..].chars().nth(1) {
+            None => true,
+            Some(c) => c.is_whitespace() || "=!<>&|),#".contains(c),
+        };
+        let index = positions
+            .iter()
+            .step_by(2)
+            .copied()
+            .find(|position| closes_string(*position))
+            .unwrap_or_else(|| *positions.last().unwrap());
+
+        Ok(i.take_split(index))
     }
 }
 
