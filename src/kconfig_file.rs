@@ -147,12 +147,47 @@ impl KconfigFile {
         if variables.is_empty() {
             return content;
         }
-        let mut file_copy = content.clone();
-        for (var_name, var_value) in variables {
-            file_copy = file_copy.replace(&format!("$({var_name})"), &var_value);
-            file_copy = file_copy.replace(&format!("${{{var_name}}}"), &var_value);
-        }
 
-        file_copy
+        let mut output = String::with_capacity(content.len());
+        let mut remaining = content.as_str();
+        while let Some(start) = remaining.find('$') {
+            output.push_str(&remaining[..start]);
+            remaining = &remaining[start..];
+            let (open, close) = match remaining.as_bytes().get(1) {
+                Some(b'(') => (b'(', b')'),
+                Some(b'{') => (b'{', b'}'),
+                _ => {
+                    output.push('$');
+                    remaining = &remaining[1..];
+                    continue;
+                }
+            };
+
+            let mut depth = 1;
+            let end = remaining[2..].bytes().position(|byte| {
+                if byte == open {
+                    depth += 1;
+                } else if byte == close {
+                    depth -= 1;
+                }
+                depth == 0
+            });
+            let Some(end) = end.map(|offset| offset + 2) else {
+                // Leave malformed references untouched for the parser to diagnose.
+                output.push_str(remaining);
+                return output;
+            };
+
+            let name = &remaining[2..end];
+            output.push_str(
+                variables
+                    .get(name)
+                    .map(String::as_str)
+                    .unwrap_or(&remaining[..=end]),
+            );
+            remaining = &remaining[end + 1..];
+        }
+        output.push_str(remaining);
+        output
     }
 }

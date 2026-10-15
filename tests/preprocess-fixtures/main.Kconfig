@@ -1,0 +1,2 @@
+source "variables.Kconfig"
+source "assembler.Kconfig"
