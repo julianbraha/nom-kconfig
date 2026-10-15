@@ -3,7 +3,7 @@ use crate::{
     attribute::r#type::{ConfigType, Type},
     entry::config::Config,
     kconfig::parse_kconfig,
-    Attribute, Entry, Kconfig,
+    Attribute, Entry, Kconfig, KconfigInput,
 };
 
 #[cfg(feature = "glob-wildcard")]
@@ -43,6 +43,56 @@ fn test_parse_kconfig() {
             }
         ))
     )
+}
+
+#[test]
+fn test_inline_type_comment_does_not_add_prompt() {
+    for (keyword, expected_type) in [
+        ("bool", Type::Bool(None)),
+        ("boolean", Type::Bool(None)),
+        ("tristate", Type::Tristate(None)),
+        ("int", Type::Int(None)),
+        ("hex", Type::Hex(None)),
+        ("string", Type::String(None)),
+    ] {
+        for suffix in ["# comment", " \t# comment\n", " # comment\r\n"] {
+            let input = format!("config X\n\t{keyword}{suffix}");
+            assert_parsing_eq!(
+                parse_kconfig,
+                &input,
+                Ok((
+                    "",
+                    Kconfig {
+                        file: "".to_string(),
+                        entries: vec![Entry::Config(Config {
+                            symbol: "X".to_string(),
+                            attributes: vec![Attribute::Type(ConfigType {
+                                r#type: expected_type.clone(),
+                                r#if: None,
+                            })],
+                        })],
+                    }
+                ))
+            );
+        }
+    }
+}
+
+#[test]
+fn test_rt5514_inline_comment_preserves_hidden_default() {
+    let comment = " # force RT5514_SPI to be built-in to avoid link errors";
+    let input = format!(
+        "config SND_SOC_RT5514_SPI_BUILTIN\n\tbool{comment}\n\
+         \tdefault SND_SOC_RT5514=y && SND_SOC_RT5514_SPI=m\n"
+    );
+    let without_comment = input.replace(comment, "");
+    let (_, actual) = parse_kconfig(KconfigInput::new_extra(&input, Default::default())).unwrap();
+    let (_, expected) = parse_kconfig(KconfigInput::new_extra(
+        &without_comment,
+        Default::default(),
+    ))
+    .unwrap();
+    assert_eq!(actual, expected);
 }
 
 #[test]

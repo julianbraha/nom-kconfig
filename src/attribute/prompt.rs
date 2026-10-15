@@ -2,9 +2,9 @@ use super::expression::{parse_if_attribute, Expression};
 use crate::{util::ws, KconfigInput};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_until},
-    character::complete::{alphanumeric1, char, line_ending, multispace1, not_line_ending, one_of},
-    combinator::{eof, map, recognize, verify},
+    bytes::complete::{tag, take_till, take_until},
+    character::complete::{alphanumeric1, char, line_ending, multispace1, one_of},
+    combinator::{eof, map, peek, recognize, verify},
     multi::many1,
     sequence::{delimited, terminated},
     IResult, Parser,
@@ -75,9 +75,12 @@ pub fn parse_prompt_value(input: KconfigInput) -> IResult<KconfigInput, String> 
                 char('"'),
             ),
             delimited(ws(char('\'')), take_until("'"), char('\'')),
-            // TODO linux v-3.2, in file /arch/arm/plat-tcc/Kconfig
+            // an unquoted '#' starts a comment, not a prompt
             verify(
-                terminated(not_line_ending, alt((line_ending, eof))),
+                terminated(
+                    take_till(|c| matches!(c, '#' | '\r' | '\n')),
+                    alt((line_ending, eof, peek(tag("#")))),
+                ),
                 |d: &KconfigInput| !d.trim().is_empty(),
             ),
         )),
