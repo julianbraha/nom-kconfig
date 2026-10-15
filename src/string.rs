@@ -26,39 +26,25 @@ pub fn take_until_unbalanced(
     delimiter: char,
 ) -> impl Fn(KconfigInput) -> IResult<KconfigInput, KconfigInput> {
     move |i: KconfigInput| {
-        let mut index: usize = 0;
-        let mut delimiter_counter = 0;
-
-        let end_of_line = match &i.find('\n') {
-            Some(e) => *e,
-            None => i.len(),
-        };
-
-        while let Some(n) = &i[index..end_of_line].find(delimiter) {
-            delimiter_counter += 1;
-            index += n + 1;
-        }
-
-        // we split just before the last double quote
-        match index.checked_sub(1) {
-            Some(i) => index = i,
-            None => {
-                return Err(nom::Err::Error(Error::from_error_kind(
-                    i,
-                    ErrorKind::TakeUntil,
-                )))
+        let mut escaped = false;
+        for (index, ch) in i.fragment().char_indices() {
+            // Quoted Kconfig tokens cannot span physical lines.
+            if matches!(ch, '\r' | '\n') {
+                break;
+            }
+            if escaped {
+                escaped = false;
+            } else if ch == delimiter {
+                return Ok(i.take_split(index));
+            } else if ch == '\\' {
+                escaped = true;
             }
         }
-        // Last delimiter is the string delimiter
-        delimiter_counter -= 1;
 
-        match delimiter_counter % 2 == 0 {
-            true => Ok(i.take_split(index)),
-            false => Err(nom::Err::Error(Error::from_error_kind(
-                i,
-                ErrorKind::TakeUntil,
-            ))),
-        }
+        Err(nom::Err::Error(Error::from_error_kind(
+            i,
+            ErrorKind::TakeUntil,
+        )))
     }
 }
 

@@ -126,15 +126,15 @@ fn test_parse_depends_on_ambigus() {
 fn test_parse_string() {
     assert_parsing_eq!(
         parse_string,
-        r#""hello "world"" if NET"#,
-        Ok((" if NET", r#"hello "world""#.to_string()),)
+        r#""hello \"world\"" if NET"#,
+        Ok((" if NET", r#"hello \"world\""#.to_string()),)
     );
 
-    assert_parsing_fail!(parse_string, r#""hello "world""#);
+    assert_parsing_fail!(parse_string, r#""hello \"world\""#);
 
     assert_parsing_fail!(
         parse_string,
-        r#""hello "world"
+        r#""hello \"world\"
 ""#
     )
 }
